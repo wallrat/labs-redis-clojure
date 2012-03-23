@@ -27,7 +27,7 @@ In my target code for this library talks to alot of different Redis instances an
 ## Basic Usage
 
 ```clojure
-(require '[labs-redis2.core :as redis])
+(require '[labs.redis.core :as redis])
 
 (def db (redis/client))
 
