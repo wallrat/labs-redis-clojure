@@ -1,6 +1,6 @@
 # labs-redis-clojure
 
-This is Clojure client lib for [Redis](https://github.com/antirez/redis)
+This is a Clojure client lib for [Redis](https://github.com/antirez/redis)
 
 *Here be dragons!* .. or rather, Java. The client is a small core of java that implements the Redis protocol
 with a clojure API for Redis commands around it.
@@ -10,19 +10,17 @@ with a clojure API for Redis commands around it.
 
 ## Features
 - Pretty fast. The core Java part is in the same ballpark as redis-bench
-- All commands are pipelined by default and returns futures.
-- Syntax
-- Return values are processed as little as possible, eg. GET xxx returns byte[].
-includes some helper fns for converting to String `(->str @(get r "xxx"))` and String[] (->strs)
-- Futures return can be deref:ed with `(deref xx)` and `@` (returns Reply)
-- Replies can alse be deref:ed to their underlying values `@@(ping db) => "PONG"`
 - Commands are generated from [redis-doc](https://github.com/antirez/redis-doc). This means it's easy to
 keep the client up-to-date with Redis development. Also, useful documention for command fns.
+- All commands are pipelined by default and returns futures.
+- Futures return can be deref:ed with `(deref xx)` and `@` (returns Reply)
+- Replies can alse be deref:ed to their underlying values `@@(ping db) => "PONG"`
+- Return values are processed as little as possible, eg. `@@(get db "xxx")` returns byte[].
+Includes some helper fns for converting to `String` `(->str @(get r "xxx"))` and `String[]` (->strs)
 - Sane pub/sub support, including correct behaviour for UNSUBSCRIBE returning connection to normal state.
 - Support for MULTI/EXEC and return values (see example below).
-- labs-redis does not use global `*bindings*` for connection ref. In my targeted code for this library
-talks to alot of different Redis instances and `(with-connection (client) (set key val))` add alot of
-uneccesary boilerplate for us.
+- labs-redis does not use global `*bindings*` for the connection ref (as in clj-redis and redis-clojure).
+In my target code for this library talks to alot of different Redis instances and `(with-connection (client) (set key val))` adds alot of uneccesary boilerplate for us.
 - Idiomatic support for EVAL. `defeval` handles caching of lua source per connection and EVALSHA use etc. `(defeval my-echo [] [x] "return redis.call('ECHO',ARGV[1])")`
 - Small connection pool impl (`pool` and `with-pool` macro.) Work in progress..
 
@@ -62,6 +60,7 @@ uneccesary boilerplate for us.
 ```
 
 Arguments to commands are converted to do-what-I-mean so we can write code like
+
 ```clojure
 (zunionstore r "out" 2 ["set1" "set2"] {:weights [10 20] :aggregate :sum})
 ```
@@ -88,7 +87,7 @@ Arguments to commands are converted to do-what-I-mean so we can write code like
           a (mget r "k1" "k2")
           b (set r "k1" "xx")]
       (exec! r)
-      (println @a @b)) ;; xx v2
+      (println (->str @a) (->str @b))) ;; xx v2
     (catch Throwable t
       (try @(discard r)
            (finally (throw t)))))
@@ -103,15 +102,13 @@ Tests..
 
 ## Installation / Leiningen
 
-*Not deployed on clojars yet. Install locally or use leiningen checkouts*
+_Not deployed on clojars yet. Install locally or use leiningen checkouts_
 
-Add `[labs-redis "0.1.0"]` in your `project.clj`.
-then run lein deps.
+Add `[labs-redis "0.1.0"]` in your `project.clj` then run `lein deps`.
 
-Author
-------
+## Author
 
-Andreas Bielk :: andreas@preemtive.se :: @wallrat
+Andreas Bielk :: andreas@preemptive.se :: @wallrat
 
 
 ## License
