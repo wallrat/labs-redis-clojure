@@ -10,8 +10,8 @@ with a clojure API for Redis commands around it.
 
 ## Features
 - Pretty fast. The core Java part is in the same ballpark as redis-bench
-- Commands are generated from [redis-doc](https://github.com/antirez/redis-doc). This means it's easy to
-keep the client up-to-date with Redis development. Also, useful documention for command fns.
+- Commands are generated from [redis-doc](https://github.com/antirez/redis-doc) (commands.json). This means it's easy to
+keep the client up-to-date with Redis development. Also, useful documention for command fns!
 - All commands are pipelined by default and returns futures.
 - Futures return can be deref:ed with `(deref xx)` and `@` (returns Reply)
 - Replies can alse be deref:ed to their underlying values `@@(ping db) => "PONG"`
@@ -59,9 +59,10 @@ In my target code for this library talks to alot of different Redis instances an
 => "bar"
 ```
 
-Arguments to commands are converted to do-what-I-mean so we can write code like
+Arguments to commands are converted in a do-what-I-mean style, so we can write code like
 
 ```clojure
+;; ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]
 (zunionstore r "out" 2 ["set1" "set2"] {:weights [10 20] :aggregate :sum})
 ```
 
