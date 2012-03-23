@@ -17,7 +17,7 @@ keep the client up-to-date with Redis development. Also, useful documention for 
 - Replies can alse be deref:ed to their underlying values `@@(ping db) => "PONG"`
 - Return values are processed as little as possible, eg. `@@(get db "xxx")` returns byte[].
 Includes some helper fns for converting to `String` `(->str @(get r "xxx"))` and `String[]` (->strs)
-- Sane pub/sub support, including correct behaviour for UNSUBSCRIBE returning connection to normal state.
+- Sane pub/sub support, including correct behavior for UNSUBSCRIBE returning connection to normal state.
 - Support for MULTI/EXEC and return values (see example below).
 - labs-redis does not use global `*bindings*` for the connection ref (as in clj-redis and redis-clojure).
 In my target code for this library talks to alot of different Redis instances and `(with-connection (client) (set key val))` adds alot of uneccesary boilerplate for us.
@@ -59,7 +59,7 @@ In my target code for this library talks to alot of different Redis instances an
 => "bar"
 ```
 
-Arguments to commands are converted in a do-what-I-mean style, so we can write code like
+Arguments to commands are converted and flattened in a do-what-I-mean style, so we can write code like
 
 ```clojure
 ;; ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]
