@@ -68,15 +68,12 @@ Arguments to commands are converted and flattened in a do-what-I-mean style, so 
 
 ## PUB/SUB
 ```clojure
-(defn example-subscribe-with [db]
-  (subscribe-with  db
+  (subscribe-with r
    ["msgs" "msgs2" "msgs3"]
    (fn [db channel message]
      (let [message (->str message)]
        (println "R " channel message)
-       (when (= "u" message)
-         (cmd** db "UNSUBSCRIBE" [channel]))
-       (not (= "quit" message))))))
+       (not (= "quit" message)))))
 ```
 
 ## MULTI/EXEC
@@ -85,10 +82,11 @@ Arguments to commands are converted and flattened in a do-what-I-mean style, so 
   (try
     (multi r)
     (let [_ (mset r "k1" "v1" "k2" "v2")
-          a (mget r "k1" "k2")
-          b (set r "k1" "xx")]
+          a (get r "k1")
+	  _ (set r "k2" "xx")
+          b (get r "k2")]
       (exec! r)
-      (println (->str @a) (->str @b))) ;; xx v2
+      (println (->str @a) (->str @b))) ;; v1 xx
     (catch Throwable t
       (try @(discard r)
            (finally (throw t)))))
