@@ -22,13 +22,15 @@
 (defn client
   "Creates and returns an Redis client"
   ([] (Client.))
-  ([{:keys [host port timeout test-on-borrow] :as opts}]
+  ([{:keys [host port] :as opts}]
      (Client. ^String host ^int port)))
 
 (defn pool
   "Creates and returns a pool of Redis clients"
-  ([] (pool (parse-url "redis://localhost:6379")))
-  ([{:keys [host port timeout test-on-borrow] :as opts}]
+  ([] (pool {}))
+  ([{:keys [host port test-on-borrow]
+     :or {host "localhost" port 6379 test-on-borrow false}
+     :as opts}]
      (ClientPool. host port test-on-borrow)))
 
 ;; (defmacro with-pool [name pool & body]
@@ -230,7 +232,7 @@
       acmp (fn [^bytes a ^bytes b] (java.util.Arrays/equals a b))]
   (defn psubscribe-with
     "Listen for messages published to given channels matching given patterns.
-  Calls handler with (handler db channel message) on messages. Handler can return false to unsubscribe all channels and make the connection available again. Runs in current thread, returns when all channels are unsubscribed (connection no longer in pub/sub special state).
+  Calls handler with (handler db pattern channel message) on messages. Handler can return false to unsubscribe all channels and make the connection available again. Runs in current thread, returns when all channels are unsubscribed (connection no longer in pub/sub special state).
   Since Redis version 1.3.8"
     [^Client db channels handler]
     (cmd** db SUBSCRIBE channels)
@@ -249,26 +251,6 @@
                                 (when-not (handler db (->str (aget v 1)) (->str (aget v 2)) (aget v 3))
                                   (cmd** db UNSUBSCRIBE channels))
                                 (recur subscribed-channels))))))))
-
-(defn example-subscribe-with [db]
-  (subscribe-with
-   db
-   ["msgs" "msgs2" "msgs3"]
-   (fn [db channel message]
-     (let [message (->str message)]
-       (println "R " channel message)
-       (when (= "u" message)
-         (cmd** db "UNSUBSCRIBE" [channel]))
-       (not (= "quit" message))))))
-
-(defn example-psubscribe-with [db]
-  (psubscribe-with
-   db
-   ["msgs.*"]
-   (fn [db pattern channel message]
-     (let [message (->str message)]
-       (println "R " pattern channel message)
-       (not (= "quit" message))))))
 
 ;; Transactions
 ;; Like atomically in redis-clojure
@@ -296,20 +278,6 @@ Since Redis version 1.1.95"
   [^Client db]
   (.execWithResults db))
 
-(comment
-  (try
-    (multi r)
-    (let [_ (mset r "k1" "v1" "k2" "v2")
-          a (mget r "k1" "k2")
-          b (set r "k1" "xx")]
-      (println @a @b) ;; QUEUED QUEUED
-      (exec! r)
-      (println @a @b)) ;; xx v2
-    (catch Throwable t
-      (try @(discard r)
-           (finally (throw t)))))
-  )
-
 ;; info helper
 (defn info!
   "Blocking version of INFO that parses value into a map.
@@ -324,4 +292,4 @@ Since Redis version 1.1.95"
 (defn -main []
   (pprint
    (let [r (client)]
-    (->>str @(ping r)))))
+     (->>str @(ping r)))))
