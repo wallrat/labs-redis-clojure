@@ -1,5 +1,5 @@
 (defproject labs.redis "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+  :description "Redis client library"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/data.json "0.1.1"]]
   :dev-dependencies [[clojure-source "1.3.0"]
