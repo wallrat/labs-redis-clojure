@@ -55,8 +55,9 @@
   (.getValue reply))
 
 (let [byte-array-class (Class/forName "[B")]
-  (defn ->str [reply]
+  (defn ->str
     "Coerces reply into a String."
+    [reply]
     (condp instance? reply
       byte-array-class (String. ^bytes reply)
       BulkReply (String. (.bytes ^BulkReply reply))
