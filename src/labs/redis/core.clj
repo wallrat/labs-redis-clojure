@@ -10,6 +10,8 @@
 
 (set! *warn-on-reflection* true)
 
+(def ^:private byte-array-class (Class/forName "[B"))
+
 (defn parse-url [url]
   (let [u (java.net.URI. url)
         ui (.getUserInfo u)
@@ -56,14 +58,14 @@
 (defn value [^Reply reply]
   (.getValue reply))
 
-(let [byte-array-class (Class/forName "[B")]
-  (defn ->str
-    "Coerces reply into a String."
-    [reply]
-    (condp instance? reply
-      byte-array-class (String. ^bytes reply)
-      BulkReply (String. (.bytes ^BulkReply reply))
-      java.lang.Object (.toString ^java.lang.Object reply))))
+
+(defn ->str
+  "Coerces reply into a String."
+  [reply]
+  (condp instance? reply
+    byte-array-class (String. ^bytes reply)
+    BulkReply (String. (.bytes ^BulkReply reply))
+    java.lang.Object (.toString ^java.lang.Object reply)))
 
 (defn ->strs [reply]
   (map ->str (value reply)))
@@ -85,8 +87,7 @@
    (keyword? v) (name v)
    (map? v) (map cmd-arg-convert v)
    (vector? v) (map cmd-arg-convert v)
-   ;; string
-   ;; byte[]
+   (instance? byte-array-class v) v
    :default (.toString ^Object v)))
 
 
