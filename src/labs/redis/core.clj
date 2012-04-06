@@ -62,19 +62,22 @@
 (defn ->str
   "Coerces reply into a String."
   [reply]
-  (condp instance? reply
-    byte-array-class (String. ^bytes reply)
-    BulkReply (String. (.bytes ^BulkReply reply))
-    java.lang.Object (.toString ^java.lang.Object reply)))
+  (when reply
+    (condp instance? reply
+      byte-array-class (String. ^bytes reply)
+      BulkReply (String. (.bytes ^BulkReply reply))
+      java.lang.Object (.toString ^java.lang.Object reply))))
 
 (defn ->strs [reply]
-  (map ->str (value reply)))
+  (when reply
+    (map ->str (value reply))))
 
 (defn ->>str [r]
-  (condp instance? r
-    MultiBulkReply (map ->>str (value r))
-    Reply (->>str (value r))
-    java.lang.Object (->str r)))
+  (when r
+    (condp instance? r
+      MultiBulkReply (map ->>str (value r))
+      Reply (->>str (value r))
+      java.lang.Object (->str r))))
 
 ;; low level redis protocol fns
 
