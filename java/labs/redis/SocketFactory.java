@@ -10,9 +10,15 @@ import java.net.Socket;
 
 public class SocketFactory
 {
-  public static final int timeout = 10000;
+  public static final int TIMEOUT = 10000;
 
   public static Socket newSocket(String host, int port)
+    throws IOException
+  {
+    return newSocket(host,port,SocketFactory.TIMEOUT);
+  }
+
+  public static Socket newSocket(String host, int port, int timeout)
     throws IOException
   {
     final Socket socket = new Socket();

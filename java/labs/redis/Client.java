@@ -35,6 +35,13 @@ public class Client
     protocol = new Connection(SocketFactory.newSocket(host, port));
   }
 
+
+    public Client(String host, int port, int timeout)
+    throws IOException
+  {
+      protocol = new Connection(SocketFactory.newSocket(host, port, timeout));
+  }
+
   public Client()
     throws IOException
   {

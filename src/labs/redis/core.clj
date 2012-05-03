@@ -23,9 +23,11 @@
 
 (defn client
   "Creates and returns an Redis client"
-  ([] (Client.))
-  ([{:keys [host port] :as opts}]
-     (Client. ^String host ^int port)))
+  ([] (client {}))
+  ([{:keys [host port timeout]
+     :or {host "localhost" port 6379 timeout 10000}
+     :as opts}]
+     (Client. ^String host ^int port ^int timeout)))
 
 (defn pool
   "Creates and returns a pool of Redis clients"
@@ -65,7 +67,7 @@
   (when reply
     (condp instance? reply
       byte-array-class (String. ^bytes reply)
-      BulkReply (String. (.bytes ^BulkReply reply))
+      BulkReply (let [bs (.bytes ^BulkReply reply)] (when bs (String. bs)))
       java.lang.Object (.toString ^java.lang.Object reply))))
 
 (defn ->strs [reply]
