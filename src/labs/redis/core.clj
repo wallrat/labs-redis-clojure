@@ -95,22 +95,47 @@
    (instance? byte-array-class v) v
    :default (.toString ^Object v)))
 
+(defprotocol AsyncCommand
+  (cmd*
+    [client cmd ks] [client cmd ks1 ks2]
+    "Low-level fn for sending commands to redis. Returns a LinkedReplyFuture
+  Example (cmd* db \"SET\" [\"mykey\" \"myval\"])"))
 
-(defn cmd*
-  "Low-level fn for sending commands to redis. Returns a LinkedReplyFuture
-  Example (cmd* db \"SET\" [\"mykey\" \"myval\"])"
-  ([^Client R cmd ks1 ks2] (cmd* R cmd (concat ks1 ks2)))
-  ([^Client R cmd ks]
+(extend-protocol AsyncCommand
+  labs.redis.Client
+  (cmd*
+    ([R cmd ks1 ks2] (cmd* R cmd (concat ks1 ks2)))
+    ([R cmd ks]
      (let [cv (flatten (map cmd-arg-convert ks))
            args (into-array java.lang.Object (cons cmd cv))]
        (.pipeline R args))))
 
-(defn cmd**
-  ([^Client R cmd ks1 ks2] (cmd* R cmd (concat ks1 ks2)))
-  ([^Client R cmd ks]
-     (let [cv (flatten (map cmd-arg-convert ks))
-           args (into-array java.lang.Object (cons cmd cv))]
-       (.send R args))))
+  labs.redis.ClientPool
+  (cmd*
+    ([R cmd ks1 ks2] (cmd* R cmd (concat ks1 ks2)))
+    ([R cmd ks]
+       (with-pool client R
+         (cmd* client cmd ks)))))
+
+
+(defprotocol SyncCommand
+  (cmd**
+    [client cmd ks] [client cmd ks1 ks2]
+    "Similar to cmd* but synchronous"))
+
+(extend-protocol SyncCommand
+  labs.redis.Client
+  (cmd**
+    ([R cmd ks1 ks2] (cmd* R cmd (concat ks1 ks2)))
+    ([R cmd ks]
+       (let [cv (flatten (map cmd-arg-convert ks))
+             args (into-array java.lang.Object (cons cmd cv))]
+         (.send R args))))
+
+  labs.redis.ClientPool
+  (cmd**
+    ([R cmd ks1 ks2] (cmd* R cmd (concat ks1 ks2)))
+    ([R cmd ks] (with-pool client R (cmd** client cmd ks)))))
 
 ;; high level redis commands
 
