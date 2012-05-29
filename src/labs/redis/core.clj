@@ -6,7 +6,7 @@
         [clojure.pprint :only (pprint)]
         [clojure.java.io :only (resource)])
   (:require [clojure.data.json :as json])
-  (:import [labs.redis Client ClientPool Reply BulkReply MultiBulkReply]))
+  (:import [labs.redis Client ClientPool Reply BulkReply StatusReply MultiBulkReply LinkedReplyFuture]))
 
 (set! *warn-on-reflection* true)
 
@@ -60,15 +60,16 @@
 (defn value [^Reply reply]
   (.getValue reply))
 
+(defprotocol StringCoerce
+  (->str [reply] "Coerces a reply into a String."))
 
-(defn ->str
-  "Coerces reply into a String."
-  [reply]
-  (when reply
-    (condp instance? reply
-      byte-array-class (String. ^bytes reply)
-      BulkReply (let [bs (.bytes ^BulkReply reply)] (when bs (String. bs)))
-      java.lang.Object (.toString ^java.lang.Object reply))))
+(extend-protocol StringCoerce
+  (Class/forName "[B")  (->str [reply] (String. ^bytes reply))
+  BulkReply (->str [reply] (let [bs (.bytes reply)] (when bs (String. bs))))
+  StatusReply (->str [reply] (->str @reply))
+  LinkedReplyFuture (->str [reply] (->str @reply))
+  Object (->str [reply] (.toString reply))
+  nil (->str [reply] nil))
 
 (defn ->strs [reply]
   (when reply
