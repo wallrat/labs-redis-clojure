@@ -285,6 +285,14 @@
 
 ;; Transactions
 ;; Like atomically in redis-clojure
+(defn exec!
+  "EXEC
+Execute all commands issued after MULTI.
+Completes QUEUED futures with results.
+Since Redis version 1.1.95"
+  [^Client db]
+  (.execWithResults db))
+
 (defmacro atomically
   "Execute all redis commands in body in a MULTI/EXEC. If an exception is thrown the
   the transaction will be closed by an DISCARD, and the exception will be rethrown.
@@ -295,19 +303,12 @@ Any exceptions thrown by DISCARD will be ignored."
      (try
       (do
         ~@body
-        (exec ~db))
+        (exec! ~db))
       (catch Throwable e#
         ;; on DISCARD we .ensure to flush the pipeline
         (try @(discard ~db)
           (finally (throw e#)))))))
 
-(defn exec!
-  "EXEC
-Execute all commands issued after MULTI.
-Completes QUEUED futures with results.
-Since Redis version 1.1.95"
-  [^Client db]
-  (.execWithResults db))
 
 ;; info helper
 (defn info!
