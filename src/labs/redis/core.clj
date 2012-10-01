@@ -83,7 +83,6 @@
       java.lang.Object (->str r))))
 
 (defn ->cli [r]
-  (println (class r))
   (if (nil? r) "(nil)"
     (apply str
            (condp instance? r
