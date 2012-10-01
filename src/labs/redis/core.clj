@@ -6,7 +6,7 @@
         [clojure.pprint :only (pprint)]
         [clojure.java.io :only (resource)])
   (:require [clojure.data.json :as json])
-  (:import [labs.redis Client ClientPool Reply BulkReply StatusReply MultiBulkReply LinkedReplyFuture]))
+  (:import [labs.redis Client ClientPool Reply ErrorReply IntegerReply BulkReply StatusReply MultiBulkReply LinkedReplyFuture]))
 
 (set! *warn-on-reflection* true)
 
@@ -81,6 +81,25 @@
       MultiBulkReply (map ->>str (value r))
       Reply (->>str (value r))
       java.lang.Object (->str r))))
+
+(defn ->cli [r]
+  (println (class r))
+  (if (nil? r) "(nil)"
+    (apply str
+           (condp instance? r
+             LinkedReplyFuture (->cli @r)
+             (Class/forName "[B")  (->str r)
+
+             BulkReply (->cli @r)
+             StatusReply (->str @r)
+             ErrorReply (str "(error) " (value r))
+             MultiBulkReply (if-let [values (seq (value r))]
+                              (interpose "\n" (map #(str "(" %1 ") " (->str %2))
+                                                   (iterate inc 0)
+                                                   values))
+                              "(empty list or set)")
+             IntegerReply (str "(integer)" (value r))
+             (->str r)))))
 
 ;; low level redis protocol fns
 
