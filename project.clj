@@ -1,4 +1,4 @@
-(defproject labs.redis "0.1.1"
+(defproject labs.redis "0.1.2"
   :description "Redis client library"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/data.json "0.1.1"]]
