@@ -66,6 +66,7 @@
 (extend-protocol StringCoerce
   (Class/forName "[B")  (->str [reply] (String. ^bytes reply))
   BulkReply (->str [reply] (let [bs (.bytes reply)] (when bs (String. bs))))
+  MultiBulkReply (->str [reply] (when-let [v (value reply)] (map ->str v)))
   StatusReply (->str [reply] (->str @reply))
   LinkedReplyFuture (->str [reply] (->str @reply))
   Object (->str [reply] (.toString reply))
