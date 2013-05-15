@@ -24,7 +24,7 @@ public class MultiBulkReply extends Reply
   public String toString()
   {
     return "MultiBulkReply{" +
-      "byteArrays=" + values.length +
+	"byteArrays=" + (values != null ? values.length : -1 ) +
       '}';
   }
 }

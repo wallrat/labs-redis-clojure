@@ -151,6 +151,9 @@ public class Connection
     throws IOException
   {
     int size = readInteger(is);
+    if (size == -1)
+      return null;
+
     Reply[] values = new Reply[size];
     for (int i = 0; i < values.length; i++)
       values[i] = receiveReply(is);
