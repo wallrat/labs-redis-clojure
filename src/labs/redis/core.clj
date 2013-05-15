@@ -93,11 +93,11 @@
              StatusReply (->str @r)
              ErrorReply (str "(error) " (value r))
              MultiBulkReply (if-let [values (seq (value r))]
-                              (interpose "\n" (map #(str "(" %1 ") " (->str %2))
+                              (interpose "\n" (map #(str "(" %1 ") " (->cli %2))
                                                    (iterate inc 0)
                                                    values))
                               "(empty list or set)")
-             IntegerReply (str "(integer)" (value r))
+             IntegerReply (str "(integer) " (value r))
              (->str r)))))
 
 ;; low level redis protocol fns
